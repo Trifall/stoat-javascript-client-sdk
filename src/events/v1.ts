@@ -952,11 +952,9 @@ export async function handleEvent(
     case "VoiceChannelJoin": {
       const channel = client.channels.getOrPartial(event.id);
       if (channel) {
-        channel.voiceParticipants.set(
-          event.state.id,
-          new VoiceParticipant(client, event.state),
-        );
-        // todo: event
+        const participant = new VoiceParticipant(client, event.state);
+        channel.voiceParticipants.set(event.state.id, participant);
+        client.emit("voiceChannelJoin", channel, participant);
       }
       break;
     }
@@ -964,12 +962,25 @@ export async function handleEvent(
       const channel = client.channels.getOrPartial(event.id);
       if (channel) {
         channel.voiceParticipants.delete(event.user);
-        // todo: event
+        client.emit("voiceChannelLeave", channel, event.user);
       }
       break;
     }
     case "VoiceChannelMove": {
-      // todo
+      const fromChannel = client.channels.getOrPartial(event.from);
+      const toChannel = client.channels.getOrPartial(event.to);
+      if (fromChannel) {
+        fromChannel.voiceParticipants.delete(event.user);
+      }
+      if (toChannel) {
+        toChannel.voiceParticipants.set(
+          event.state.id,
+          new VoiceParticipant(client, event.state),
+        );
+      }
+      if (fromChannel && toChannel) {
+        client.emit("voiceChannelMove", event.user, fromChannel, toChannel);
+      }
       break;
     }
     case "UserVoiceStateUpdate": {

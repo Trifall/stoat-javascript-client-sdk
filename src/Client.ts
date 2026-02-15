@@ -11,6 +11,7 @@ import type { Message } from "./classes/Message.js";
 import type { Server } from "./classes/Server.js";
 import type { ServerMember } from "./classes/ServerMember.js";
 import type { User } from "./classes/User.js";
+import type { VoiceParticipant } from "./classes/VoiceParticipant.js";
 import { AccountCollection } from "./collections/AccountCollection.js";
 import { BotCollection } from "./collections/BotCollection.js";
 import { ChannelCollection } from "./collections/ChannelCollection.js";
@@ -94,6 +95,10 @@ export type Events = {
 
   emojiCreate: [emoji: Emoji];
   emojiDelete: [emoji: HydratedEmoji];
+
+  voiceChannelJoin: [channel: Channel, participant: VoiceParticipant];
+  voiceChannelLeave: [channel: Channel, userId: string];
+  voiceChannelMove: [userId: string, from: Channel, to: Channel];
 };
 
 /**
