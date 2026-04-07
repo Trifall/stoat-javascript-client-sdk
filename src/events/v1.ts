@@ -879,6 +879,18 @@ export async function handleEvent(
       break;
     }
     case "UserPresence": {
+      // When a user goes offline, remove them from all voice channels.
+      // This prevents ghost participants when the server's voice-ingress
+      // webhook fails to fire a VoiceChannelLeave event.
+      if (!event.online) {
+        for (const channel of client.channels.values()) {
+          if (channel.voiceParticipants.has(event.id)) {
+            channel.voiceParticipants.delete(event.id);
+            client.emit("voiceChannelLeave", channel, event.id);
+          }
+        }
+      }
+
       handleEvent(
         client,
         {
