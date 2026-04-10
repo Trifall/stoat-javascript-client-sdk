@@ -304,12 +304,39 @@ export async function handleEvent(
           }
         }
 
+        // Clear all voice participants first so channels that are no longer
+        // in the server's voice_states (i.e. now empty) don't retain ghosts.
+        const staleChannels: string[] = [];
+        client.channels.forEach((channel) => {
+          if (channel.voiceParticipants.size > 0) {
+            staleChannels.push(
+              `${channel.id} (${channel.voiceParticipants.size} participants)`,
+            );
+            channel.voiceParticipants.clear();
+          }
+        });
+
+        if (staleChannels.length > 0) {
+          console.log(
+            "[VoiceState] Ready: cleared voice participants from",
+            staleChannels.length,
+            "channels:",
+            staleChannels,
+          );
+        }
+
         if (event.voice_states) {
           for (const state of event.voice_states) {
             const channel = client.channels.get(state.id);
             if (channel) {
-              channel.voiceParticipants.clear();
-
+              console.log(
+                "[VoiceState] Ready: repopulating",
+                state.id,
+                "with",
+                state.participants.length,
+                "participants:",
+                state.participants.map((p) => p.id),
+              );
               for (const participant of state.participants) {
                 channel.voiceParticipants.set(
                   participant.id,
@@ -318,6 +345,10 @@ export async function handleEvent(
               }
             }
           }
+        } else {
+          console.log(
+            "[VoiceState] Ready: no voice_states in event — all channels now empty",
+          );
         }
         if (event.emojis) {
           for (const emoji of event.emojis) {
@@ -951,6 +982,13 @@ export async function handleEvent(
     }
     case "VoiceChannelJoin": {
       const channel = client.channels.getOrPartial(event.id);
+      console.log(
+        "[VoiceState] Join:",
+        event.state.id,
+        "-> channel",
+        event.id,
+        channel ? `(now ${channel.voiceParticipants.size + 1})` : "(channel not found!)",
+      );
       if (channel) {
         const participant = new VoiceParticipant(client, event.state);
         channel.voiceParticipants.set(event.state.id, participant);
@@ -960,6 +998,13 @@ export async function handleEvent(
     }
     case "VoiceChannelLeave": {
       const channel = client.channels.getOrPartial(event.id);
+      console.log(
+        "[VoiceState] Leave:",
+        event.user,
+        "-> channel",
+        event.id,
+        channel ? `(now ${channel.voiceParticipants.size - 1})` : "(channel not found!)",
+      );
       if (channel) {
         channel.voiceParticipants.delete(event.user);
         client.emit("voiceChannelLeave", channel, event.user);
