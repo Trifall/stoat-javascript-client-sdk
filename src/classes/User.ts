@@ -226,16 +226,19 @@ export class User {
    * @param data Changes
    */
   async edit(data: DataEditUser): Promise<void> {
-    const user = await this.#collection.client.api.patch(
-      `/users/${
-        this.id === this.#collection.client.user?.id ? "@me" : this.id
-      }`,
-      data,
-    );
-
     this.#collection.updateUnderlyingObject(
       this.id,
-      hydrate("user", user, this.#collection.client, false),
+      hydrate(
+        "user",
+        await this.#collection.client.api.patch(
+          `/users/${
+            this.id === this.#collection.client.user?.id ? "@me" : this.id
+          }`,
+          data,
+        ),
+        this.#collection.client,
+        false,
+      ),
     );
   }
 
