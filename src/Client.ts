@@ -11,7 +11,7 @@ import type { Emoji } from "./classes/Emoji.js";
 import type { Message } from "./classes/Message.js";
 import type { Server } from "./classes/Server.js";
 import type { ServerMember } from "./classes/ServerMember.js";
-import type { User } from "./classes/User.js";
+import type { User, UserLimits } from "./classes/User.js";
 import type { VoiceParticipant } from "./classes/VoiceParticipant.js";
 import { AccountCollection } from "./collections/AccountCollection.js";
 import { BotCollection } from "./collections/BotCollection.js";
@@ -614,5 +614,16 @@ export class Client extends AsyncEventEmitter<Events> {
     }, data.retry_after * 1000);
 
     this.#slowmodeTimers.set(channelId, timer);
+  }
+
+  /**
+   * Backend enforced limits for the logged in user
+   */
+  get limits(): UserLimits | undefined {
+    if (!this.configured() || !this.user) {
+      return;
+    }
+
+    return this.user.limits;
   }
 }
