@@ -4,7 +4,7 @@ import { batch, createSignal } from "solid-js";
 import { ReactiveMap } from "@solid-primitives/map";
 import { AsyncEventEmitter } from "@vladfrangu/async_event_emitter";
 import { API } from "stoat-api";
-import type { DataLogin, RevoltConfig, Role } from "stoat-api";
+import type { DataLogin, Error, RevoltConfig, Role } from "stoat-api";
 
 import type { Channel } from "./classes/Channel.js";
 import type { Emoji } from "./classes/Emoji.js";
@@ -49,8 +49,7 @@ export type Session = { _id: string; token: string; user_id: string } | string;
  * Events provided by the client
  */
 export type Events = {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  error: [error: any];
+  error: [error: Error];
 
   connected: [];
   connecting: [];

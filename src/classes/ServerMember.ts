@@ -2,7 +2,6 @@ import type {
   DataBanCreate,
   DataMemberEdit,
   MemberCompositeKey,
-  Role,
 } from "stoat-api";
 
 import type { ServerMemberCollection } from "../collections/ServerMemberCollection.js";
@@ -92,6 +91,13 @@ export class ServerMember {
    */
   get avatar(): File | undefined {
     return this.#collection.getUnderlyingObject(key(this.id)).avatar;
+  }
+
+  /**
+   * Pronouns
+   */
+  get pronouns(): string | undefined {
+    return this.#collection.getUnderlyingObject(key(this.id)).pronouns;
   }
 
   /**
