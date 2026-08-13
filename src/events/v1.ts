@@ -145,6 +145,7 @@ type ServerMessage =
       role_id: string;
       data: Partial<Role>;
     }
+  | { type: "ServerRoleRanksUpdate"; id: string; ranks: string[] }
   | { type: "ServerRoleDelete"; id: string; role_id: string }
   | {
       type: "UserUpdate";
@@ -764,6 +765,25 @@ export async function handleEvent(
       }
       break;
     }
+    case "ServerRoleRanksUpdate": {
+      const server = client.servers.getOrPartial(event.id);
+      if (server && event.ranks) {
+        event.ranks.forEach((roleId: string, idx: number) => {
+          const role = server.roles.get(roleId);
+          if (role) {
+            server.roles.set(
+              roleId,
+              new ServerRole(client, server.id, roleId, {
+                ...role,
+                rank: idx,
+              } as never),
+            );
+          }
+        });
+        client.emit("serverRoleRanksUpdate", server, event.ranks);
+      }
+      break;
+    }
     case "ServerRoleDelete": {
       const server = client.servers.getOrPartial(event.id);
       if (server) {
@@ -1007,7 +1027,9 @@ export async function handleEvent(
         event.state.id,
         "-> channel",
         event.id,
-        channel ? `(now ${channel.voiceParticipants.size + 1})` : "(channel not found!)",
+        channel
+          ? `(now ${channel.voiceParticipants.size + 1})`
+          : "(channel not found!)",
       );
       if (channel) {
         const participant = new VoiceParticipant(client, event.state);
@@ -1023,7 +1045,9 @@ export async function handleEvent(
         event.user,
         "-> channel",
         event.id,
-        channel ? `(now ${channel.voiceParticipants.size - 1})` : "(channel not found!)",
+        channel
+          ? `(now ${channel.voiceParticipants.size - 1})`
+          : "(channel not found!)",
       );
       if (channel) {
         channel.voiceParticipants.delete(event.user);
